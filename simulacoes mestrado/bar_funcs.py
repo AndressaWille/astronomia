@@ -3,6 +3,33 @@
 from numpy import *
 import numpy as np
 import h5py
+ 
+def theta_bar(m, x, y, Rmax):
+    
+    R = np.sqrt(x**2 + y**2)
+    theta = np.arctan(y/x)
+    
+    Rmax = Rmax
+
+    cond = np.argwhere(R<Rmax).flatten()
+    a2 = sum(m[cond] * np.cos(2*theta[cond]))
+    b2 = sum(m[cond] * np.sin(2*theta[cond]))
+
+    theta_b = (1/2)*np.arctan2(b2,a2)
+    #theta_b_graus = theta_b *180/np.pi #graus
+
+    return theta_b
+    
+
+def corr_theta_b(N, x, y, theta):
+    
+    for k in range (0, N):
+        x_2 = np.cos(-theta)*x[k] - np.sin(-theta)*y[k]
+        y_2 = np.sin(-theta)*x[k] + np.cos(-theta)*y[k]
+        x[k] = x_2 
+        y[k] = y_2 
+        
+    return x, y     
 
 def theta_phi(N, x, y, z, vx, vy, vz, m):
     Ltot = [0, 0, 0]
