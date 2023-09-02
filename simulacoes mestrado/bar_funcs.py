@@ -3,7 +3,35 @@
 from numpy import *
 import numpy as np
 import h5py
- 
+import unsiotools.unsiotools.simulations.cfalcon as falcon
+
+def find_peak(x, y, z, m):
+    #build pos array
+    pos = np.array( [x, y, z] )
+    #format required by UNS
+    pos = pos.T.astype('float32').flatten()
+    #use falcon to get densities
+    cf  = falcon.CFalcon()
+    _, dens, _ = cf.getDensity(pos, m)
+    
+    # call function to compute densities
+    dens = dens
+    #sort particles by decreasing density
+    sort = np.argsort(dens)[::-1]
+    x = x[sort]
+    y = y[sort]
+    z = z[sort]
+    dens = dens[sort]
+    #select a few of the densest particles
+    Ndensest = 64
+    #average positions of the densest particles
+    xpeak = np.average(x[0:Ndensest])
+    ypeak = np.average(y[0:Ndensest])
+    zpeak = np.average(z[0:Ndensest])
+    
+    return xpeak, ypeak, zpeak
+
+
 def theta_bar(m, x, y, Rmax):
     
     R = np.sqrt(x**2 + y**2)
