@@ -5,6 +5,129 @@ import numpy as np
 import h5py
 import unsiotools.unsiotools.simulations.cfalcon as falcon
 
+
+def A1_warp(m, x, y, z, Rmax, Nbins, n_snapshots):
+    
+    R = np.sqrt(x**2 + y**2)
+    theta = np.arctan2(y, x)
+    
+    Rmin = 0.0
+    Rmax = Rmax
+    Nbins = Nbins
+    dR = (Rmax - Rmin)/Nbins
+
+    r = np.empty(Nbins)
+    a1 = np.empty(Nbins)
+    b1 = np.empty(Nbins)
+    A1 = np.empty(Nbins)
+
+    for i in range(0, Nbins):
+
+        R1 = i * dR
+        R2 = R1 + dR
+        r[i] = (0.5 * (R1+R2))
+
+        over = 1.0 * dR
+
+        cond = np.argwhere((R > R1-over) & (R < R2+over)).flatten()
+
+        N = len(z[cond])
+        
+        a1[i] = np.sum(z[cond] * np.cos(1*theta[cond]))/N
+        
+        b1[i] = np.sum(z[cond] * np.sin(1*theta[cond]))/N
+
+        A1[i] = np.sqrt(a1[i]**2+b1[i]**2)
+
+        if math.isnan(A1[i]) == True:
+            A1[i] = 0
+
+    return A1, r
+
+
+
+def density(m, x, y, z, Rmax, Nbins, n_snapshots):
+    R = np.sqrt(x**2 + y**2 + z**2)
+    
+    Rmin = 0.0
+    Rmax = Rmax
+    Nbins = Nbins
+    dR = (Rmax - Rmin)/Nbins
+
+    r = np.empty(Nbins)
+    M = np.empty(Nbins)
+    V = np.empty(Nbins)
+    densities = np.empty(Nbins)
+
+    for i in range(0, Nbins):
+        R1 = i * dR
+        R2 = R1 + dR
+        r[i] = (0.5 * (R1+R2))
+
+        over = 1.0 * dR
+
+        cond = np.argwhere((R > R1-over) & (R < R2+over)).flatten()
+        M[i] = sum(m[cond] * 1e10)
+        V2 = ((4.0/3.0) * np.pi * (R2**3))
+        V1 = ((4.0/3.0) * np.pi * (R1**3))
+        V[i] = V2 - V1
+        densities[i] = M[i]/V[i]
+
+    return densities, r
+    
+
+def density_sup(m, x, y, Rmax, Nbins, n_snapshots):
+    R = np.sqrt(x**2 + y**2)
+    
+    Rmin = 0.0
+    Rmax = Rmax
+    Nbins = Nbins
+    dR = (Rmax - Rmin)/Nbins
+
+    r = np.empty(Nbins)
+    M = np.empty(Nbins)
+    A = np.empty(Nbins)
+    densities = np.empty(Nbins)
+
+    for i in range(0, Nbins):
+        R1 = i * dR
+        R2 = R1 + dR
+        r[i] = (0.5 * (R1+R2))
+
+        over = 1.0 * dR
+
+        cond = np.argwhere((R > R1-over) & (R < R2+over)).flatten()
+        M[i] = sum(m[cond] * 1e10)
+        A[i] = np.pi * ((R2)**2 - (R1)**2)
+        densities[i] = M[i]/A[i]
+
+    return densities, r
+
+    
+def z_theta(x, y, z):
+    theta_ = []
+    z_ = []
+    
+    r = sqrt(x**2 + y**2)
+    rmin = 20.0
+    rmax = 30.0
+    theta_disk = np.arctan2(y, x)
+                
+    theta_min = (-1) * np.pi
+    theta_max = np.pi
+    Nbins = 30
+    dtheta = (theta_max - theta_min)/Nbins
+                
+    for i in range(-Nbins, Nbins):
+        theta1 = i * dtheta
+        theta2 = theta1 + dtheta
+        theta_.append((theta1 + theta2) * 0.5)
+        cond = argwhere((theta_disk>theta1) & (theta_disk<theta2) & (r>rmin) & (r<rmax)).flatten()
+        zmean = mean(z[cond])
+        z_.append(zmean)
+
+    return theta_, z_
+
 def find_peak(x, y, z, m):
     #build pos array
     pos = np.array( [x, y, z] )
